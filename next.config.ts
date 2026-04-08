@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Allow large file uploads for tender PDFs
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
+  // Exclude pdf-parse from the webpack bundle (it uses fs)
+  serverExternalPackages: ["pdf-parse"],
 };
 
 export default nextConfig;

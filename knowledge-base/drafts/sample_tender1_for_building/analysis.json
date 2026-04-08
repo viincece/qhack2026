@@ -1,0 +1,52 @@
+{
+  "title": "Mapping and Continuous Monitoring of the European AI Ecosystem",
+  "reference": "EC-CNECT/2025/OP/0034",
+  "client": "European Commission, DG CNECT — Communications Networks, Content and Technology",
+  "deadline": "30 May 2025, 17:00 CET",
+  "estimatedValue": "EUR 3,200,000 over a maximum duration of 36 months",
+  "summary": "The Commission requires a comprehensive mapping and continuous monitoring system of AI-relevant organizations across all EU member states to support AI Act implementation. The contractor must systematically identify, classify, and monitor AI developers, deployers, and related entities using evidence-based methods that capture actors not visible through traditional data collection approaches.",
+  "sections": [
+    {
+      "id": "section_1",
+      "title": "Understanding of the Objectives",
+      "requirement": "Demonstrate clear understanding of what the Commission needs and why existing approaches are insufficient. Show comprehension of the AI Act regulatory context, the gaps in current market intelligence, and the specific challenges of mapping the European AI ecosystem including SMEs, research spinouts, and niche sector deployers.",
+      "contentType": "other"
+    },
+    {
+      "id": "section_2",
+      "title": "Proposed Methodology",
+      "requirement": "Describe in detail the methodology for identifying, classifying, and continuously monitoring AI-relevant organizations in EU27. Address population coverage beyond commercial databases, evidence-based classification using verifiable sources, quality assurance procedures, false-positive rejection methods, transparency and reproducibility requirements, and update frequency capabilities.",
+      "contentType": "methodology"
+    },
+    {
+      "id": "section_3",
+      "title": "Work Plan",
+      "requirement": "Provide a comprehensive project timeline with key milestones, milestone deliverables, and resource allocation by task. Include schedule for quarterly updates, annual reports, sector deep-dives, and capacity building activities. Demonstrate ability to deliver baseline dataset by Month 6 and maintain continuous monitoring throughout the contract.",
+      "contentType": "project_management"
+    },
+    {
+      "id": "section_4",
+      "title": "Team Composition",
+      "requirement": "List all proposed staff and subcontractors with relevant CVs (max 3 pages per profile). Must include project manager with EU project experience, methodological expert in web-based/AI-driven data collection, AI Act/EU digital policy specialist, data engineering capacity, and SME/industrial ecosystem analysis expert. Map each team member to specific tasks and include subcontractor commitment letters.",
+      "contentType": "team"
+    },
+    {
+      "id": "section_5",
+      "title": "References",
+      "requirement": "Provide at least three completed references from the last five years as specified in selection criteria. At least one must demonstrate experience in large-scale organizational data collection and analysis, and at least one must show experience in EU digital policy or regulatory support. Include contract value, contracting authority, performance period, and deliverable descriptions with contact details for verification.",
+      "contentType": "references"
+    },
+    {
+      "id": "section_6",
+      "title": "Quality Assurance",
+      "requirement": "Describe internal quality review processes including peer review, validation procedures, and methods for handling Commission feedback during the contract. Address how quality will be maintained across deliverables, data accuracy verification, and continuous improvement of methodology based on results and feedback.",
+      "contentType": "quality_assurance"
+    },
+    {
+      "id": "section_7",
+      "title": "Pricing",
+      "requirement": "Financial offer using the Financial Tender Form (Annex B), broken down by deliverable and by staff profile. Must demonstrate cost-effectiveness while meeting all technical requirements and deliverable schedules. Include transparent pricing structure for quarterly updates and ad-hoc requests.",
+      "contentType": "pricing"
+    }
+  ]
+}
