@@ -38,15 +38,6 @@ export default function KnowledgeBase() {
     setPageLoading(false);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-[var(--muted)]">
-        <div className="animate-spin h-5 w-5 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
-        Loading knowledge base...
-      </div>
-    );
-  }
-
   const categoryLabels: Record<string, string> = {
     company: "Company",
     team: "Team",
@@ -56,38 +47,138 @@ export default function KnowledgeBase() {
     boilerplate: "Boilerplate",
   };
 
-  return (
-    <div className="flex gap-6">
-      {/* Sidebar */}
-      <div className="w-64 shrink-0">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">Knowledge Base</h1>
-          <Link
-            href="/knowledge/upload"
-            className="text-xs bg-[var(--primary)] text-white px-2 py-1 rounded hover:bg-[var(--primary-hover)]"
-          >
-            + Add
-          </Link>
-        </div>
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: 40,
+          color: "var(--warm-silver)",
+        }}
+      >
+        <span className="clay-spinner" />
+        <span className="text-body-standard">Loading knowledge base...</span>
+      </div>
+    );
+  }
 
-        <div className="space-y-4">
+  return (
+    <div style={{ maxWidth: 1060 }}>
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 28,
+        }}
+      >
+        <div>
+          <div
+            className="label-uppercase"
+            style={{ color: "var(--ube-800)", marginBottom: 8 }}
+          >
+            Knowledge Graph
+          </div>
+          <h1
+            className="heading-section"
+            style={{ fontSize: "2.75rem", marginBottom: 4 }}
+          >
+            Knowledge Base
+          </h1>
+          <p
+            className="text-body"
+            style={{ color: "var(--warm-silver)", margin: 0 }}
+          >
+            Browse company wiki pages organized by category
+          </p>
+        </div>
+        <Link
+          href="/knowledge/upload"
+          className="btn-primary"
+          style={{
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+            padding: "10px 20px",
+            fontSize: 14,
+            borderRadius: 12,
+          }}
+        >
+          + Add Document
+        </Link>
+      </div>
+
+      <div style={{ display: "flex", gap: 24 }}>
+        {/* Category browser */}
+        <div
+          className="clay-card"
+          style={{
+            width: 260,
+            flexShrink: 0,
+            padding: "20px 16px",
+            alignSelf: "flex-start",
+            position: "sticky",
+            top: 32,
+          }}
+        >
           {Object.entries(pages).map(([cat, catPages]) => (
-            <div key={cat}>
-              <h3 className="text-xs font-semibold uppercase text-[var(--muted)] mb-1">
+            <div key={cat} style={{ marginBottom: 20 }}>
+              <div
+                className="label-uppercase"
+                style={{
+                  color: "var(--warm-silver)",
+                  marginBottom: 8,
+                  padding: "0 8px",
+                }}
+              >
                 {categoryLabels[cat] || cat}
-              </h3>
-              <div className="space-y-0.5">
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {catPages
-                  .filter((p) => !p.path.endsWith("index.md") && !p.path.endsWith("log.md"))
+                  .filter(
+                    (p) =>
+                      !p.path.endsWith("index.md") &&
+                      !p.path.endsWith("log.md")
+                  )
                   .map((p) => (
                     <button
                       key={p.path}
                       onClick={() => loadPage(p.path)}
-                      className={`w-full text-left text-sm px-2 py-1.5 rounded transition-colors truncate ${
-                        selectedPage?.path === p.path
-                          ? "bg-[var(--primary)] text-white"
-                          : "hover:bg-[var(--background)]"
-                      }`}
+                      style={{
+                        all: "unset",
+                        display: "block",
+                        width: "100%",
+                        boxSizing: "border-box",
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        fontSize: 13.5,
+                        fontWeight: selectedPage?.path === p.path ? 600 : 400,
+                        color:
+                          selectedPage?.path === p.path
+                            ? "var(--ube-800)"
+                            : "var(--warm-charcoal)",
+                        background:
+                          selectedPage?.path === p.path
+                            ? "rgba(67, 8, 159, 0.08)"
+                            : "transparent",
+                        cursor: "pointer",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        transition: "background 0.15s, color 0.15s",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedPage?.path !== p.path) {
+                          e.currentTarget.style.background = "var(--oat-light)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedPage?.path !== p.path) {
+                          e.currentTarget.style.background = "transparent";
+                        }
+                      }}
                     >
                       {p.title}
                     </button>
@@ -96,38 +187,91 @@ export default function KnowledgeBase() {
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        {pageLoading ? (
-          <div className="flex items-center gap-2 text-[var(--muted)]">
-            <div className="animate-spin h-5 w-5 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
-            Loading page...
-          </div>
-        ) : selectedPage ? (
-          <div className="bg-white border border-[var(--border)] rounded-lg p-6">
-            <div className="flex items-center gap-2 mb-4">
-              {selectedPage.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded"
+        {/* Page content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {pageLoading ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: 40,
+                color: "var(--warm-silver)",
+              }}
+            >
+              <span className="clay-spinner" />
+              <span className="text-body-standard">Loading page...</span>
+            </div>
+          ) : selectedPage ? (
+            <div className="clay-card" style={{ padding: "28px 32px" }}>
+              {/* Tags */}
+              {selectedPage.tags.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    marginBottom: 16,
+                    flexWrap: "wrap",
+                  }}
                 >
-                  {tag}
-                </span>
-              ))}
+                  {selectedPage.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: "4px 10px",
+                        borderRadius: 1584,
+                        background: "var(--badge-blue-bg)",
+                        color: "var(--badge-blue-text)",
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="prose max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {selectedPage.bodyContent}
+                </ReactMarkdown>
+              </div>
             </div>
-            <div className="prose max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {selectedPage.bodyContent}
-              </ReactMarkdown>
+          ) : (
+            <div
+              className="clay-card-dashed"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: 320,
+                color: "var(--warm-silver)",
+              }}
+            >
+              <div style={{ textAlign: "center" }}>
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 20,
+                    background: "var(--oat-light)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 16px",
+                    fontSize: 28,
+                  }}
+                >
+                  KB
+                </div>
+                <div className="text-body-standard" style={{ color: "var(--warm-silver)" }}>
+                  Select a page from the sidebar to view its content
+                </div>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-64 text-[var(--muted)] bg-white border border-[var(--border)] rounded-lg">
-            Select a page from the sidebar to view its content
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

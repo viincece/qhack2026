@@ -47,17 +47,34 @@ export default function TenderDraft({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-[var(--muted)]">
-        <div className="animate-spin h-5 w-5 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
-        Loading draft...
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: 40,
+          color: "var(--warm-silver)",
+        }}
+      >
+        <span className="clay-spinner" />
+        <span className="text-body-standard">Loading draft...</span>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-        {error || "Draft not found"}
+      <div
+        className="clay-card-sm"
+        style={{
+          padding: "20px 24px",
+          background: "rgba(252, 121, 129, 0.08)",
+          borderColor: "var(--pomegranate-400)",
+        }}
+      >
+        <span className="text-body-standard" style={{ color: "#b5303a" }}>
+          {error || "Draft not found"}
+        </span>
       </div>
     );
   }
@@ -65,66 +82,151 @@ export default function TenderDraft({
   const gapCount = (data.draft.match(/\[NEEDS INPUT:/g) || []).length;
 
   return (
-    <div>
+    <div style={{ maxWidth: 860 }}>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">
+      <div style={{ marginBottom: 24 }}>
+        <div
+          className="label-uppercase"
+          style={{ color: "var(--warm-silver)", marginBottom: 8 }}
+        >
+          Draft Response
+        </div>
+        <h1
+          className="heading-section"
+          style={{ fontSize: "2.25rem", marginBottom: 8 }}
+        >
           {data.analysis?.title || id.replace(/_/g, " ")}
         </h1>
         {data.analysis && (
-          <div className="flex flex-wrap gap-3 text-sm text-[var(--muted)]">
-            <span>Ref: {data.analysis.reference}</span>
-            <span>&middot;</span>
-            <span>Client: {data.analysis.client}</span>
-            <span>&middot;</span>
-            <span>Value: {data.analysis.estimatedValue}</span>
-            <span>&middot;</span>
-            <span>Deadline: {data.analysis.deadline}</span>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              color: "var(--warm-silver)",
+            }}
+          >
+            <span
+              className="text-caption"
+              style={{
+                padding: "4px 12px",
+                background: "var(--oat-light)",
+                borderRadius: 1584,
+              }}
+            >
+              Ref: {data.analysis.reference}
+            </span>
+            <span
+              className="text-caption"
+              style={{
+                padding: "4px 12px",
+                background: "var(--oat-light)",
+                borderRadius: 1584,
+              }}
+            >
+              Client: {data.analysis.client}
+            </span>
+            <span
+              className="text-caption"
+              style={{
+                padding: "4px 12px",
+                background: "var(--oat-light)",
+                borderRadius: 1584,
+              }}
+            >
+              Value: {data.analysis.estimatedValue}
+            </span>
+            <span
+              className="text-caption"
+              style={{
+                padding: "4px 12px",
+                background: "var(--oat-light)",
+                borderRadius: 1584,
+              }}
+            >
+              Deadline: {data.analysis.deadline}
+            </span>
           </div>
         )}
       </div>
 
       {/* Status bar */}
-      <div className="flex items-center gap-4 mb-4 p-3 bg-white border border-[var(--border)] rounded-lg">
-        <div className="flex items-center gap-2 text-sm">
+      <div
+        className="clay-card-sm"
+        style={{
+          padding: "12px 20px",
+          marginBottom: 20,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span
-            className={`inline-block w-2 h-2 rounded-full ${
-              gapCount > 0 ? "bg-[var(--warning)]" : "bg-[var(--success)]"
-            }`}
+            className={`status-dot ${gapCount > 0 ? "status-dot-warning" : "status-dot-success"}`}
           />
-          {gapCount > 0 ? (
-            <span className="text-[var(--warning)]">
-              {gapCount} section{gapCount > 1 ? "s" : ""} need human input
-            </span>
-          ) : (
-            <span className="text-[var(--success)]">
-              All sections have content
-            </span>
-          )}
+          <span
+            className="text-caption"
+            style={{
+              color: gapCount > 0 ? "var(--lemon-700)" : "var(--matcha-600)",
+              fontWeight: 500,
+            }}
+          >
+            {gapCount > 0
+              ? `${gapCount} section${gapCount > 1 ? "s" : ""} need human input`
+              : "All sections have content"}
+          </span>
         </div>
         <button
           onClick={() => setShowAnalysis(!showAnalysis)}
-          className="text-sm text-[var(--primary)] hover:underline ml-auto"
+          className="btn-pill"
+          style={{ fontSize: 12 }}
         >
-          {showAnalysis ? "Hide" : "Show"} tender analysis
+          {showAnalysis ? "Hide" : "Show"} analysis
         </button>
       </div>
 
       {/* Tender Analysis (collapsible) */}
       {showAnalysis && data.analysis && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="font-semibold mb-2">Tender Analysis</h3>
-          <p className="text-sm mb-3">{data.analysis.summary}</p>
-          <div className="space-y-2">
+        <div
+          className="clay-card"
+          style={{
+            marginBottom: 20,
+            padding: "24px 28px",
+            background: "rgba(67, 8, 159, 0.03)",
+            borderColor: "var(--ube-300)",
+          }}
+        >
+          <h3 className="heading-feature" style={{ marginBottom: 12, color: "var(--ube-800)" }}>
+            Tender Analysis
+          </h3>
+          <p className="text-body-standard" style={{ color: "var(--warm-charcoal)", marginBottom: 16 }}>
+            {data.analysis.summary}
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {data.analysis.sections.map((s) => (
               <div
                 key={s.id}
-                className="text-sm p-2 bg-white rounded border border-blue-100"
+                className="clay-card-sm"
+                style={{ padding: "12px 16px" }}
               >
-                <div className="font-medium">{s.title}</div>
-                <div className="text-[var(--muted)] text-xs">
-                  Type: {s.contentType} &middot; {s.requirement.slice(0, 120)}
-                  ...
+                <div className="heading-feature" style={{ fontSize: "0.9rem", marginBottom: 4 }}>
+                  {s.title}
+                </div>
+                <div className="text-small" style={{ color: "var(--warm-silver)" }}>
+                  <span
+                    className="text-mono"
+                    style={{
+                      fontSize: 10,
+                      background: "var(--oat-light)",
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      marginRight: 6,
+                    }}
+                  >
+                    {s.contentType}
+                  </span>
+                  {s.requirement.slice(0, 120)}...
                 </div>
               </div>
             ))}
@@ -133,7 +235,7 @@ export default function TenderDraft({
       )}
 
       {/* Draft Content */}
-      <div className="bg-white border border-[var(--border)] rounded-lg p-6">
+      <div className="clay-card" style={{ padding: "32px 36px" }}>
         <div className="prose max-w-none">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {data.draft}
@@ -142,7 +244,7 @@ export default function TenderDraft({
       </div>
 
       {/* Actions */}
-      <div className="mt-4 flex gap-3">
+      <div style={{ marginTop: 20, display: "flex", gap: 12 }}>
         <button
           onClick={() => {
             const blob = new Blob([data.draft], { type: "text/markdown" });
@@ -153,13 +255,13 @@ export default function TenderDraft({
             a.click();
             URL.revokeObjectURL(url);
           }}
-          className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg text-sm hover:bg-[var(--primary-hover)] transition-colors"
+          className="btn-primary"
         >
           Download as Markdown
         </button>
         <button
           onClick={() => navigator.clipboard.writeText(data.draft)}
-          className="px-4 py-2 bg-white border border-[var(--border)] rounded-lg text-sm hover:border-[var(--primary)] transition-colors"
+          className="btn-secondary"
         >
           Copy to Clipboard
         </button>

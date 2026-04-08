@@ -1,54 +1,55 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { listDrafts } from "@/lib/storage";
+import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Tender Agent — Meridian Intelligence",
+  title: "Tenderizer — Meridian Intelligence",
   description: "AI-powered tender response drafting agent",
 };
 
-export default function RootLayout({
+export const dynamic = "force-dynamic";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let drafts: { id: string; versions: number[]; updatedAt: string }[] = [];
+  try {
+    drafts = await listDrafts();
+  } catch {
+    // Sidebar still renders, just no drafts
+  }
+
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
-        {/* Navigation */}
-        <nav className="bg-white border-b border-[var(--border)] px-6 py-3 flex items-center gap-8">
-          <Link href="/" className="font-bold text-lg text-[var(--primary)]">
-            Tender Agent
-          </Link>
-          <div className="flex gap-6 text-sm">
-            <Link
-              href="/tender/new"
-              className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-            >
-              New Tender
-            </Link>
-            <Link
-              href="/knowledge"
-              className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-            >
-              Knowledge Base
-            </Link>
-            <Link
-              href="/knowledge/upload"
-              className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-            >
-              Upload Document
-            </Link>
-          </div>
-        </nav>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body style={{ background: "var(--warm-cream)", margin: 0, display: "flex" }}>
+        <Sidebar drafts={drafts} />
 
-        {/* Main Content */}
-        <main className="flex-1 p-6 max-w-6xl mx-auto w-full">{children}</main>
-
-        {/* Footer */}
-        <footer className="border-t border-[var(--border)] px-6 py-3 text-center text-xs text-[var(--muted)]">
-          Tender Agent Prototype — Meridian Intelligence GmbH — Q-Hack 2026
-        </footer>
+        {/* Main content */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+          <main style={{ flex: 1, padding: 32 }}>
+            {children}
+          </main>
+          <footer className="clay-footer" style={{ margin: "0 24px 24px" }}>
+            <span className="text-caption" style={{ color: "var(--warm-silver)" }}>
+              Tenderizer Prototype — Meridian Intelligence GmbH — Q-Hack 2026
+            </span>
+          </footer>
+        </div>
       </body>
     </html>
   );

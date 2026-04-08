@@ -45,99 +45,200 @@ export default function NewTender() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-1">Upload New Tender</h1>
-      <p className="text-[var(--muted)] mb-6">
-        Upload a tender document (PDF) and the agent will analyze its structure,
-        retrieve relevant content from the knowledge base, and generate a
-        structured first draft.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* File upload area */}
+    <div style={{ maxWidth: 640 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            file
-              ? "border-[var(--primary)] bg-blue-50"
-              : "border-[var(--border)] hover:border-[var(--muted)]"
-          }`}
+          className="label-uppercase"
+          style={{ color: "var(--matcha-600)", marginBottom: 8 }}
+        >
+          New Tender
+        </div>
+        <h1
+          className="heading-section"
+          style={{ fontSize: "2.75rem", marginBottom: 12 }}
+        >
+          Upload Tender
+        </h1>
+        <p className="text-body" style={{ color: "var(--warm-charcoal)" }}>
+          Upload a tender document (PDF) and the agent will analyze its structure,
+          retrieve relevant content from the knowledge base, and generate a
+          structured first draft.
+        </p>
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 20 }}
+      >
+        {/* File upload */}
+        <div
+          className={`upload-zone ${file ? "has-file" : ""}`}
+          onClick={() => document.getElementById("tender-file")?.click()}
         >
           <input
             type="file"
             accept=".pdf,.txt,.md"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="hidden"
+            style={{ display: "none" }}
             id="tender-file"
             disabled={loading}
           />
-          <label htmlFor="tender-file" className="cursor-pointer">
-            {file ? (
-              <div>
-                <div className="text-lg font-medium text-[var(--primary)]">
-                  {file.name}
-                </div>
-                <div className="text-sm text-[var(--muted)] mt-1">
-                  {(file.size / 1024).toFixed(0)} KB &middot; Click to change
-                </div>
+          {file ? (
+            <div>
+              <div
+                className="heading-feature"
+                style={{
+                  fontSize: "1.25rem",
+                  color: "var(--matcha-600)",
+                  marginBottom: 4,
+                }}
+              >
+                {file.name}
               </div>
-            ) : (
-              <div>
-                <div className="text-4xl mb-2">+</div>
-                <div className="font-medium">Click to select a tender document</div>
-                <div className="text-sm text-[var(--muted)] mt-1">
-                  Supports PDF, TXT, MD
-                </div>
+              <div className="text-caption" style={{ color: "var(--warm-silver)" }}>
+                {(file.size / 1024).toFixed(0)} KB &middot; Click to change
               </div>
-            )}
-          </label>
+            </div>
+          ) : (
+            <div>
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 16,
+                  background: "var(--oat-light)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                  fontSize: 24,
+                  color: "var(--warm-charcoal)",
+                }}
+              >
+                +
+              </div>
+              <div className="heading-feature" style={{ marginBottom: 4 }}>
+                Click to select a tender document
+              </div>
+              <div className="text-caption" style={{ color: "var(--warm-silver)" }}>
+                Supports PDF, TXT, MD
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Submit button */}
+        {/* Submit */}
         <button
           type="submit"
           disabled={!file || loading}
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-            !file || loading
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]"
-          }`}
+          className="btn-primary"
+          style={{ width: "100%", padding: "14px 20px", fontSize: 18 }}
         >
-          {loading ? "Generating Draft..." : "Analyze & Generate Draft"}
+          {loading ? (
+            <>
+              <span className="clay-spinner" style={{ width: 18, height: 18 }} />
+              Generating Draft...
+            </>
+          ) : (
+            "Analyze & Generate Draft"
+          )}
         </button>
       </form>
 
       {/* Status */}
       {status && (
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-          <div className="flex items-center gap-2">
-            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+        <div
+          className="clay-card-sm"
+          style={{
+            marginTop: 24,
+            padding: "16px 24px",
+            background: "rgba(67, 8, 159, 0.05)",
+            borderColor: "var(--ube-300)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <span className="clay-spinner" style={{ width: 16, height: 16 }} />
+          <span className="text-body-standard" style={{ color: "var(--ube-800)" }}>
             {status}
-          </div>
+          </span>
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-          <strong>Error:</strong> {error}
+        <div
+          className="clay-card-sm"
+          style={{
+            marginTop: 24,
+            padding: "16px 24px",
+            background: "rgba(252, 121, 129, 0.08)",
+            borderColor: "var(--pomegranate-400)",
+          }}
+        >
+          <span className="text-body-standard" style={{ color: "#b5303a" }}>
+            <strong>Error:</strong> {error}
+          </span>
         </div>
       )}
 
-      {/* What happens next */}
-      <div className="mt-8 p-4 bg-[var(--background)] border border-[var(--border)] rounded-lg">
-        <h3 className="font-semibold mb-2">What happens when you upload:</h3>
-        <ol className="text-sm text-[var(--muted)] space-y-1 list-decimal list-inside">
-          <li>The tender document is parsed and analyzed by the AI agent</li>
-          <li>Required response sections are identified</li>
-          <li>
-            For each section, the agent retrieves relevant content from the
-            knowledge base (company profile, past projects, CVs, methodology,
-            etc.)
-          </li>
-          <li>
-            A structured first draft is generated, with gaps clearly marked
-          </li>
-          <li>You can review, edit, and refine the draft</li>
+      {/* Help text */}
+      <div
+        className="clay-card-dashed"
+        style={{ marginTop: 40, padding: "24px 28px" }}
+      >
+        <h3 className="heading-feature" style={{ marginBottom: 16 }}>
+          What happens when you upload:
+        </h3>
+        <ol
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+          }}
+        >
+          {[
+            "The tender document is parsed and analyzed by the AI agent",
+            "Required response sections are identified",
+            "For each section, relevant content is retrieved from the knowledge base",
+            "A structured first draft is generated, with gaps clearly marked",
+            "You can review, edit, and refine the draft",
+          ].map((step, i) => (
+            <li
+              key={i}
+              style={{ display: "flex", alignItems: "flex-start", gap: 12 }}
+            >
+              <span
+                className="text-mono"
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  width: 24,
+                  height: 24,
+                  borderRadius: 8,
+                  background: "var(--oat-light)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  color: "var(--warm-charcoal)",
+                }}
+              >
+                {i + 1}
+              </span>
+              <span
+                className="text-body-standard"
+                style={{ color: "var(--warm-charcoal)" }}
+              >
+                {step}
+              </span>
+            </li>
+          ))}
         </ol>
       </div>
     </div>
