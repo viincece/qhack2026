@@ -34,6 +34,8 @@ export interface TenderAnalysis {
   estimatedValue: string;
   sections: TenderSection[];
   summary: string;
+  fitScore: number;      // 0–100: how well this tender matches Meridian's profile
+  fitReason: string;     // Brief explanation of the fit assessment
 }
 
 export async function analyzeTender(tenderText: string): Promise<TenderAnalysis> {
@@ -55,6 +57,8 @@ Return a JSON object with this exact structure (no markdown, just raw JSON):
   "deadline": "submission deadline",
   "estimatedValue": "contract value",
   "summary": "2-3 sentence summary of what the tender requires",
+  "fitScore": 0-100,
+  "fitReason": "1-2 sentence explanation of fit assessment",
   "sections": [
     {
       "id": "section_1",
@@ -64,6 +68,22 @@ Return a JSON object with this exact structure (no markdown, just raw JSON):
     }
   ]
 }
+
+COMPANY FIT ASSESSMENT:
+Meridian Intelligence GmbH is a Berlin-based market intelligence consultancy. Assess how well this tender fits their profile:
+- Core expertise: evidence-based market/ecosystem mapping, data economy analysis, NLP-based web classification, policy research
+- Typical clients: EU institutions (European Commission, JRC, ENISA, EBA), national agencies
+- Industries: data economy, cybersecurity, fintech/DORA compliance, digital policy, AI governance
+- Capabilities: web scraping & NLP classification, survey design & analysis, stakeholder mapping, regulatory impact assessment
+- Team size: small consultancy (5-10 specialists)
+- Typical contract values: €50K–€500K
+
+Score 80-100: strong fit (matches core expertise and client type)
+Score 50-79: moderate fit (partial overlap, could stretch)
+Score 20-49: weak fit (mostly outside scope, would need significant partnering)
+Score 0-19: poor fit (completely unrelated industry/expertise)
+
+Be honest — a low score helps the user avoid wasting effort on unsuitable tenders.
 
 CRITICAL RULES FOR SECTION IDENTIFICATION:
 1. ONLY include sections that the tender document EXPLICITLY asks for — through evaluation criteria, required response structure, terms of reference, or specific instructions about what the response must contain.

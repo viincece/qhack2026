@@ -172,6 +172,13 @@ export default function Sidebar({ drafts }: SidebarProps) {
             </svg>
             <span>Pricing</span>
           </Link>
+          <Link href="/roadmap" className="sidebar-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 13V5a2 2 0 012-2h0a2 2 0 012 2v0a2 2 0 002 2h0a2 2 0 012-2v0a2 2 0 012 2v8" />
+              <line x1="3" y1="13" x2="13" y2="13" />
+            </svg>
+            <span>Roadmap</span>
+          </Link>
         </div>
       )}
 

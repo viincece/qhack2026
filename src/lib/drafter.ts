@@ -303,6 +303,21 @@ export async function generateDraft(
   onProgress?.("analyzing_done", `Found ${analysis.sections.length} sections: ${analysis.sections.map(s => s.title).join(", ")}`);
   await storage.saveDraftAnalysis(tenderId, JSON.stringify(analysis, null, 2));
 
+  // 3b. If fit is poor, skip draft generation entirely
+  if (analysis.fitScore != null && analysis.fitScore < 50) {
+    onProgress?.("poor_fit", `Low fit score (${analysis.fitScore}/100): ${analysis.fitReason}`);
+    const noticeDraft = `# ${analysis.title}\n\n> **Fit Score: ${analysis.fitScore}/100** — ${analysis.fitReason}\n\nNo draft was generated because this tender falls outside Meridian's core expertise.\n`;
+    await storage.saveDraft(tenderId, noticeDraft, 1);
+    onProgress?.("done", "Analysis complete — poor fit, no draft generated.");
+    return {
+      tenderId,
+      analysis,
+      draft: noticeDraft,
+      version: 1,
+      sectionDetails: [],
+    };
+  }
+
   // 4. Retrieve ALL relevant wiki content for ALL sections at once
   onProgress?.("retrieving", "Retrieving knowledge base content...");
   const allWikiContentParts: string[] = [];

@@ -23,6 +23,8 @@ interface DraftData {
     deadline: string;
     estimatedValue: string;
     summary: string;
+    fitScore?: number;
+    fitReason?: string;
     sections: Array<{
       id: string;
       title: string;
@@ -196,6 +198,7 @@ export default function TenderDraft({
   }
 
   const gapCount = (editableContent.match(/\[NEEDS INPUT:/g) || []).length;
+  const poorFit = data.analysis?.fitScore != null && data.analysis.fitScore < 50;
 
   /* ── Render ──────────────────────────────────────────── */
 
@@ -270,6 +273,85 @@ export default function TenderDraft({
           )}
         </div>
 
+        {/* Poor Fit — show indicator only, no draft */}
+        {poorFit && data.analysis && (
+          <div
+            className="clay-card"
+            style={{
+              padding: "40px 36px",
+              textAlign: "center",
+              border: `2px solid ${data.analysis.fitScore! < 20 ? "var(--pomegranate-400)" : "#e0a520"}`,
+              background: data.analysis.fitScore! < 20
+                ? "rgba(252, 121, 129, 0.06)"
+                : "rgba(251, 191, 36, 0.06)",
+            }}
+          >
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+              fill="none"
+              style={{ margin: "0 auto 16px" }}
+            >
+              <path
+                d="M24 4L2 44h44L24 4z"
+                stroke={data.analysis.fitScore! < 20 ? "#b5303a" : "#b8860b"}
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+                fill={data.analysis.fitScore! < 20
+                  ? "rgba(252, 121, 129, 0.12)"
+                  : "rgba(251, 191, 36, 0.12)"}
+              />
+              <line x1="24" y1="18" x2="24" y2="30"
+                stroke={data.analysis.fitScore! < 20 ? "#b5303a" : "#b8860b"}
+                strokeWidth="2.5" strokeLinecap="round" />
+              <circle cx="24" cy="36" r="1.5"
+                fill={data.analysis.fitScore! < 20 ? "#b5303a" : "#b8860b"} />
+            </svg>
+            <div style={{
+              fontSize: 22,
+              fontWeight: 800,
+              color: data.analysis.fitScore! < 20 ? "#b5303a" : "#92600a",
+              marginBottom: 4,
+            }}>
+              {data.analysis.fitScore! < 20 ? "Poor" : "Weak"} Fit for Meridian
+            </div>
+            <div style={{
+              display: "inline-block",
+              fontSize: 14,
+              fontWeight: 700,
+              padding: "4px 14px",
+              borderRadius: 10,
+              marginBottom: 16,
+              background: data.analysis.fitScore! < 20
+                ? "rgba(181, 48, 58, 0.10)"
+                : "rgba(184, 134, 11, 0.10)",
+              color: data.analysis.fitScore! < 20 ? "#b5303a" : "#92600a",
+            }}>
+              Fit Score: {data.analysis.fitScore}/100
+            </div>
+            <p style={{
+              fontSize: 15,
+              color: "var(--warm-charcoal)",
+              lineHeight: 1.6,
+              maxWidth: 520,
+              margin: "0 auto 24px",
+            }}>
+              {data.analysis.fitReason}
+            </p>
+            <p style={{
+              fontSize: 13,
+              color: "var(--warm-silver)",
+              margin: 0,
+            }}>
+              This tender falls outside Meridian&rsquo;s core expertise. No draft was generated to avoid wasting resources.
+            </p>
+          </div>
+        )}
+
+        {/* Draft content — only shown when fit is acceptable */}
+        {!poorFit && (
+          <>
         {/* Toolbar */}
         <div
           className="clay-card-sm"
@@ -544,6 +626,8 @@ export default function TenderDraft({
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
 
       {/* Chat Sidebar */}
