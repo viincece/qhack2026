@@ -3,10 +3,25 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+interface ProgressStep {
+  id: string;
+  label: string;
+  status: "pending" | "active" | "done";
+  detail?: string;
+}
+
+const PIPELINE_STEPS: { id: string; label: string }[] = [
+  { id: "parsing", label: "Parsing document" },
+  { id: "analyzing", label: "Analyzing tender structure" },
+  { id: "retrieving", label: "Retrieving knowledge base content" },
+  { id: "drafting", label: "Generating complete draft" },
+  { id: "postprocessing", label: "Post-processing & saving" },
+];
+
 export default function NewTender() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState("");
+  const [steps, setSteps] = useState<ProgressStep[]>([]);
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -16,32 +31,99 @@ export default function NewTender() {
 
     setLoading(true);
     setError("");
-    setStatus("Uploading tender document...");
+
+    // Initialize all steps as pending
+    setSteps(PIPELINE_STEPS.map((s) => ({ ...s, status: "pending" })));
 
     try {
       const formData = new FormData();
       formData.append("file", file);
-
-      setStatus("Analyzing tender structure (this may take 30-60 seconds)...");
 
       const res = await fetch("/api/tender", {
         method: "POST",
         body: formData,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
+      if (!res.ok && !res.body) {
+        const data = await res.json();
         throw new Error(data.error || "Failed to generate draft");
       }
 
-      setStatus("Draft generated! Redirecting...");
-      router.push(`/tender/${data.tenderId}`);
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        let currentEvent = "";
+        for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            currentEvent = line.slice(7);
+          } else if (line.startsWith("data: ")) {
+            const data = JSON.parse(line.slice(6));
+
+            if (currentEvent === "progress") {
+              handleProgress(data.step, data.detail);
+            } else if (currentEvent === "complete") {
+              // Mark all steps done
+              setSteps((prev) =>
+                prev.map((s) => ({ ...s, status: "done" as const }))
+              );
+              setTimeout(() => router.push(`/tender/${data.tenderId}`), 600);
+            } else if (currentEvent === "error") {
+              throw new Error(data.error);
+            }
+            currentEvent = "";
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
       setLoading(false);
-      setStatus("");
+      setSteps([]);
     }
+  };
+
+  const handleProgress = (step: string, detail?: string) => {
+    // Map backend step IDs to our pipeline step IDs
+    const stepMapping: Record<string, string> = {
+      parsing: "parsing",
+      analyzing: "analyzing",
+      analyzing_done: "analyzing",
+      retrieving: "retrieving",
+      retrieving_section: "retrieving",
+      team: "retrieving",
+      drafting: "drafting",
+      postprocessing: "postprocessing",
+      done: "postprocessing",
+    };
+
+    const mappedId = stepMapping[step];
+    if (!mappedId) return;
+
+    setSteps((prev) => {
+      const targetIndex = prev.findIndex((s) => s.id === mappedId);
+      if (targetIndex === -1) return prev;
+
+      return prev.map((s, i) => {
+        if (i < targetIndex) {
+          return { ...s, status: "done" };
+        } else if (i === targetIndex) {
+          return {
+            ...s,
+            status: step === "done" ? "done" : "active",
+            detail: detail || s.detail,
+          };
+        }
+        return { ...s, status: "pending" };
+      });
+    });
   };
 
   return (
@@ -146,24 +228,140 @@ export default function NewTender() {
         </button>
       </form>
 
-      {/* Status */}
-      {status && (
+      {/* Pipeline Progress */}
+      {steps.length > 0 && (
         <div
-          className="clay-card-sm"
-          style={{
-            marginTop: 24,
-            padding: "16px 24px",
-            background: "rgba(67, 8, 159, 0.05)",
-            borderColor: "var(--ube-300)",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-          }}
+          className="clay-card"
+          style={{ marginTop: 24, padding: "24px 28px" }}
         >
-          <span className="clay-spinner" style={{ width: 16, height: 16 }} />
-          <span className="text-body-standard" style={{ color: "var(--ube-800)" }}>
-            {status}
-          </span>
+          <div
+            className="label-uppercase"
+            style={{ color: "var(--ube-800)", marginBottom: 16 }}
+          >
+            Generation Pipeline
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 0,
+            }}
+          >
+            {steps.map((step, i) => (
+              <div key={step.id}>
+                {/* Step row */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 14,
+                    padding: "10px 0",
+                  }}
+                >
+                  {/* Icon */}
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 10,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      background:
+                        step.status === "done"
+                          ? "var(--matcha-600)"
+                          : step.status === "active"
+                            ? "var(--ube-800)"
+                            : "var(--oat-light)",
+                      transition: "background 0.3s ease",
+                    }}
+                  >
+                    {step.status === "done" ? (
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 7.5L5.5 10L11 4" />
+                      </svg>
+                    ) : step.status === "active" ? (
+                      <span
+                        className="clay-spinner"
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderColor: "rgba(255,255,255,0.3)",
+                          borderTopColor: "white",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          background: "var(--oat-border)",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Text */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      className="heading-feature"
+                      style={{
+                        fontSize: "0.9rem",
+                        color:
+                          step.status === "done"
+                            ? "var(--matcha-600)"
+                            : step.status === "active"
+                              ? "var(--clay-black)"
+                              : "var(--warm-silver)",
+                        transition: "color 0.3s ease",
+                      }}
+                    >
+                      {step.label}
+                    </div>
+                    {step.detail && step.status !== "pending" && (
+                      <div
+                        className="text-caption"
+                        style={{
+                          color: "var(--warm-silver)",
+                          marginTop: 2,
+                        }}
+                      >
+                        {step.detail}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Connector line */}
+                {i < steps.length - 1 && (
+                  <div
+                    style={{
+                      width: 2,
+                      height: 8,
+                      marginLeft: 13,
+                      background:
+                        step.status === "done"
+                          ? "var(--matcha-300)"
+                          : "var(--oat-light)",
+                      borderRadius: 1,
+                      transition: "background 0.3s ease",
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -185,62 +383,64 @@ export default function NewTender() {
       )}
 
       {/* Help text */}
-      <div
-        className="clay-card-dashed"
-        style={{ marginTop: 40, padding: "24px 28px" }}
-      >
-        <h3 className="heading-feature" style={{ marginBottom: 16 }}>
-          What happens when you upload:
-        </h3>
-        <ol
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-          }}
+      {!loading && steps.length === 0 && (
+        <div
+          className="clay-card-dashed"
+          style={{ marginTop: 40, padding: "24px 28px" }}
         >
-          {[
-            "The tender document is parsed and analyzed by the AI agent",
-            "Required response sections are identified",
-            "For each section, relevant content is retrieved from the knowledge base",
-            "A structured first draft is generated, with gaps clearly marked",
-            "You can review, edit, and refine the draft",
-          ].map((step, i) => (
-            <li
-              key={i}
-              style={{ display: "flex", alignItems: "flex-start", gap: 12 }}
-            >
-              <span
-                className="text-mono"
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  width: 24,
-                  height: 24,
-                  borderRadius: 8,
-                  background: "var(--oat-light)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  color: "var(--warm-charcoal)",
-                }}
+          <h3 className="heading-feature" style={{ marginBottom: 16 }}>
+            What happens when you upload:
+          </h3>
+          <ol
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: 0,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            {[
+              "The tender document is parsed and analyzed by the AI agent",
+              "Required response sections are identified",
+              "For each section, relevant content is retrieved from the knowledge base",
+              "A structured first draft is generated, with gaps clearly marked",
+              "You can review, edit, and refine the draft",
+            ].map((step, i) => (
+              <li
+                key={i}
+                style={{ display: "flex", alignItems: "flex-start", gap: 12 }}
               >
-                {i + 1}
-              </span>
-              <span
-                className="text-body-standard"
-                style={{ color: "var(--warm-charcoal)" }}
-              >
-                {step}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </div>
+                <span
+                  className="text-mono"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    width: 24,
+                    height: 24,
+                    borderRadius: 8,
+                    background: "var(--oat-light)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    color: "var(--warm-charcoal)",
+                  }}
+                >
+                  {i + 1}
+                </span>
+                <span
+                  className="text-body-standard"
+                  style={{ color: "var(--warm-charcoal)" }}
+                >
+                  {step}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

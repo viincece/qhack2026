@@ -1,6 +1,6 @@
 /**
  * POST /api/tender — Upload a tender PDF and generate a draft response
- * Accepts multipart form data with a "file" field.
+ * Streams progress updates via Server-Sent Events, then sends the final result.
  */
 
 import { NextRequest } from "next/server";
@@ -16,15 +16,44 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await generateDraft(buffer, file.name);
+    const fileName = file.name;
 
-    return Response.json({
-      success: true,
-      tenderId: result.tenderId,
-      analysis: result.analysis,
-      version: result.version,
-      sectionDetails: result.sectionDetails,
-      draft: result.draft,
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        const send = (event: string, data: unknown) => {
+          controller.enqueue(
+            encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+          );
+        };
+
+        try {
+          const result = await generateDraft(buffer, fileName, (step, detail) => {
+            send("progress", { step, detail });
+          });
+
+          send("complete", {
+            success: true,
+            tenderId: result.tenderId,
+            analysis: result.analysis,
+            version: result.version,
+            sectionDetails: result.sectionDetails,
+          });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Unknown error";
+          send("error", { error: message });
+        }
+
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

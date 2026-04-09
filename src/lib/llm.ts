@@ -174,11 +174,20 @@ Write the draft section now. Use markdown formatting.`,
 
 // ── Draft complete tender response (single pass) ────────
 
+export interface RankedReference {
+  title: string;
+  reference: string;
+  client: string;
+  content: string;
+  similarity: number;
+}
+
 export async function draftFullResponse(
   tenderText: string,
   analysis: TenderAnalysis,
   allWikiContent: string,
-  validTeamMembers: string[] = []
+  validTeamMembers: string[] = [],
+  rankedReferences: RankedReference[] = []
 ): Promise<string> {
   const client = getClient();
 
@@ -198,6 +207,47 @@ export async function draftFullResponse(
   // Past tenders: ENISA (6 sections, ~1500 words), EBA (6 sections, ~1200 words), JRC (5 sections, ~1400 words)
   // Base: 1200 words + 50 words per section above 4
   const wordBudget = Math.min(1500, 1200 + Math.max(0, numSections - 4) * 50);
+
+  // Build reference block from ranked past tenders
+  let referenceBlock = "";
+  if (rankedReferences.length > 0) {
+    const primary = rankedReferences[0];
+    const others = rankedReferences.slice(1);
+
+    referenceBlock = `
+PRIMARY REFERENCE — This is the most similar past Meridian tender (similarity: ${(primary.similarity * 100).toFixed(0)}%). Your output MUST match its structure, tone, density, and formatting as closely as possible. If the input tender covers the same topic, reproduce the reference content with only the minimal changes needed to address any differences in the tender requirements.
+
+<primary_reference title="${primary.title}" ref="${primary.reference}">
+${primary.content}
+</primary_reference>
+
+--- END PRIMARY REFERENCE ---`;
+
+    if (others.length > 0) {
+      referenceBlock += `
+
+ADDITIONAL REFERENCES — These are other past Meridian tenders. Use them to understand the consistent patterns across all Meridian responses (heading style, table formats, section density, tone).
+
+${others.map(ref => `<reference title="${ref.title}" ref="${ref.reference}" similarity="${(ref.similarity * 100).toFixed(0)}%">
+${ref.content}
+</reference>`).join("\n\n")}
+
+--- END ADDITIONAL REFERENCES ---`;
+    }
+
+    referenceBlock += `
+
+STYLE CONSISTENCY RULES (derived from ALL past references):
+- Executive Summary: exactly 2 paragraphs, first states what Meridian proposes, second states the concrete deliverable with numbers
+- Section 1 is always "Understanding of Objectives" / "Problem Framing" — frames the challenge, then explains Meridian's approach
+- Methodology sections use ### subsections (2.1, 2.2, etc.) with tables for classification schemes
+- Work Plan / Deliverables: always a table with milestone/deliverable/month columns
+- Team: always a table with Name/Role/Days columns, NO prose
+- Price: always a table with cost categories, always ends with TOTAL (excl. VAT) row
+- NO concluding paragraphs after the price table
+- Every sentence carries a fact, number, or specific commitment
+- Use "Meridian" (not "we" or "our team") when referring to the company in technical descriptions`;
+  }
 
   const response = await client.messages.create({
     model: MODEL,
@@ -258,93 +308,9 @@ CONCISENESS RULES — these override all other instincts:
 FORMATTING:
 - ALL tables: proper markdown with |---|---| separator rows.
 - If information is missing: [NEEDS INPUT: what is needed] — never fabricate.
+${referenceBlock}
 
-REFERENCE — a complete past Meridian tender (note the density and length):
-
-# Cybersecurity SME Landscape in the EU: Market Mapping and Supply Chain Analysis
-
-## Technical Tender
-
-**Contracting authority**
-ENISA — EU Agency for Cybersecurity, Athens
-
-## Executive Summary
-
-Meridian Intelligence GmbH proposes a systematic, evidence-based mapping of the EU cybersecurity SME landscape across all 27 member states, combining large-scale web data analysis with structured verification procedures. Our approach identifies cybersecurity-relevant organisations that are invisible to commercial databases — including niche product specialists, managed security service providers, and technology integrators operating below the visibility threshold of standard industry registries.
-
-The deliverable is a structured, machine-readable dataset of 14,000+ verified SMEs with full indicator profiles, updated quarterly, covering supply chain linkages across eight CRA-relevant product categories. The methodology is fully aligned with the ECSMAF and can be adapted to ENISA's ongoing market surveillance requirements beyond the duration of this contract.
-
-## 1. Understanding of Objectives
-
-The objective of this tender is to support ENISA in building a comprehensive, evidence-based understanding of the EU cybersecurity SME landscape — the organisations that develop, integrate, and operate cybersecurity products and services, and the supply chain relationships that connect them.
-
-The core challenge is a population problem. Standard commercial databases reliably cover large, named cybersecurity vendors. They systematically miss the long tail: the 10-person vulnerability assessment specialist in Tallinn, the industrial OT security provider in Stuttgart, the cloud security integration firm in Warsaw. These organisations are relevant to ENISA's mandate — including under the CRA and NIS2 — but they do not appear in standard filtering of company databases by NACE code or keyword.
-
-Meridian's approach is designed specifically for this problem. We identify relevance through hard evidence in organisations' own web content — product descriptions, service offerings, job postings, technical certifications — rather than relying on self-reported classifications or database labels.
-
-## 2. Proposed Methodology
-
-### 2.1 Scope Definition
-Working from the CRA product category taxonomy and the NIS2 entity scope definitions, we will define a precise classification specification identifying the types of organisations in scope, the evidence types accepted for each category, and the rejection criteria for ambiguous cases. This specification will be submitted as part of the Inception Report (Deliverable D1) and approved by ENISA before data collection begins.
-
-### 2.2 Seed Universe Construction
-We construct a seed universe from three source tiers:
-- Tier 1: National company registries for all 27 EU member states, accessed via OpenCorporates API, supplemented by Eurostat SIREN/FAME data.
-- Tier 2: Meridian's proprietary web index, covering primary organisational domains for approximately 12 million European organisations.
-- Tier 3: Sector-specific registries — BSI IT-Grundschutz certified organisations, Common Criteria evaluation laboratories, ISO 27001 certification lists, FIRST members.
-
-### 2.3 Evidence Classification
-Each candidate organisation is scored against the classification specification.
-
-| Evidence type | Weight | Example |
-|---|---|---|
-| Explicit product/service on own website | High | 'We provide EDR software for industrial control systems' |
-| Procurement record as cybersecurity supplier | High | Award notice naming entity for pen testing contract |
-| Job posting for cybersecurity-specific role | Medium | Vacancy: 'OT Security Analyst' or 'SIEM Engineer' |
-| Technical certification in relevant area | Medium | CREST accreditation, Common Criteria lab status |
-| Trade association membership | Low | ECSO membership, BITKOM cybersecurity working group |
-
-### 2.4 Supply Chain Mapping
-For the identified SME population, we will derive supply chain linkages using procurement data (TED contract award notices) and web-based relationship signals (partner pages, integration documentation, OEM references). Linkages will be represented as directed edges in a relationship graph, with edge type (supplier, integrator, reseller, OEM) and confidence score.
-
-## 3. Work Plan
-
-| Milestone | Deliverable | Month |
-|---|---|---|
-| Inception Report — methodology, scope definition, data dictionary | D1 | M2 |
-| Baseline dataset — EU27 cybersecurity SME population | D2 | M6 |
-| Q1 monitoring update + change log | D3a | M9 |
-| Sector deep-dive: CRA high-priority categories | D4 | M11 |
-| Q2 monitoring update + change log | D3b | M12 |
-| Q3 monitoring update + annual trend analysis | D3c + D5 | M15 |
-| Capacity building workshop with ENISA staff | D6 | M16 |
-| Final report and Q4 update | D3d + D7 | M18 |
-
-## 4. Team
-
-| Name | Role | Days allocated |
-|---|---|---|
-| Dr. Anna Becker | Project Director | 36 days |
-| Thomas Vogel | Technical Lead — data pipeline and delivery | 110 days |
-| Sofia Chen | Policy Lead — scope definition, regulatory context | 70 days |
-| Marcus Weber | Data Scientist — NLP classifiers, entity resolution | 90 days |
-
-## 5. Quality Assurance
-False-positive rate commitment: <3% in final delivered dataset, verified by 5% random manual audit sample. Coverage commitment: ≥95% of large enterprises (250+), ≥80% of medium enterprises (50–249), ≥70% of small enterprises (10–49) in the relevant population. All commitments documented in the Inception Report and tracked throughout the contract.
-
-## 6. Price
-
-| Cost category | Total (EUR) |
-|---|---|
-| Staff costs | 399,950 |
-| Infrastructure (AWS, data sources, tools) | 36,000 |
-| Travel and subsistence | 12,000 |
-| Contingency (5%) | 22,397 |
-| TOTAL (excl. VAT) | 470,347 |
-
---- END REFERENCE (note: ~1,500 words total, 3 pages) ---
-
-NOW GENERATE THE RESPONSE FOR THIS TENDER. Match the reference length and density exactly.
+NOW GENERATE THE RESPONSE FOR THIS TENDER. Match the primary reference's length, density, and style exactly.
 
 TENDER DOCUMENT:
 ${tenderText}

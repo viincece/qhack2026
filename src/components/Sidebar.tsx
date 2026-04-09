@@ -21,7 +21,7 @@ export default function Sidebar({ drafts }: SidebarProps) {
       <div className="sidebar-header">
         {!collapsed && (
           <Link href="/" className="sidebar-logo">
-            Tender Agent
+            Tenderizer
           </Link>
         )}
         <button
