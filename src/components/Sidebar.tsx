@@ -21,7 +21,7 @@ export default function Sidebar({ drafts }: SidebarProps) {
       <div className="sidebar-header">
         {!collapsed && (
           <Link href="/" className="sidebar-logo">
-            Tenderizer
+            TENDERIZER
           </Link>
         )}
         <button
@@ -151,6 +151,29 @@ export default function Sidebar({ drafts }: SidebarProps) {
           )}
         </div>
       </div>
+
+      {/* Subpage links */}
+      {!collapsed && (
+        <div className="sidebar-section" style={{ marginTop: "auto", paddingTop: 8 }}>
+          <Link href="/architecture" className="sidebar-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="1" y="7" width="4" height="7" rx="1" />
+              <rect x="6" y="3" width="4" height="11" rx="1" />
+              <rect x="11" y="1" width="4" height="13" rx="1" />
+            </svg>
+            <span>Architecture</span>
+          </Link>
+          <Link href="/pricing" className="sidebar-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="8" cy="8" r="6.5" />
+              <path d="M9.5 5.5C9.5 5.5 9 4.5 8 4.5S6 5.5 6.5 6.5 9 7.5 9.5 8.5 9 11.5 8 11.5 6.5 10.5 6.5 10.5" />
+              <line x1="8" y1="3" x2="8" y2="4.5" />
+              <line x1="8" y1="11.5" x2="8" y2="13" />
+            </svg>
+            <span>Pricing</span>
+          </Link>
+        </div>
+      )}
 
       {/* Bottom */}
       <div className="sidebar-footer">

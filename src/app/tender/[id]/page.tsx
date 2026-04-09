@@ -465,7 +465,34 @@ export default function TenderDraft({
             }}
             className="btn-primary"
           >
-            Download as Markdown
+            Download .md
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/docx", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    content: editableContent,
+                    filename: `${id}_draft_v${savedVersion}.docx`,
+                  }),
+                });
+                if (!res.ok) throw new Error("DOCX generation failed");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${id}_draft_v${savedVersion}.docx`;
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch (err) {
+                console.error("DOCX download error:", err);
+              }
+            }}
+            className="btn-primary"
+          >
+            Download .docx
           </button>
           <button
             onClick={() => navigator.clipboard.writeText(editableContent)}

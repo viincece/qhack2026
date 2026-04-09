@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     },
   },
   // Exclude pdf-parse from the webpack bundle (it uses fs)
-  serverExternalPackages: ["pdf-parse"],
+  serverExternalPackages: ["pdf-parse", "docx"],
 };
 
 export default nextConfig;

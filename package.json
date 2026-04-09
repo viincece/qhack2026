@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.85.0",
+    "docx": "^9.6.1",
     "gray-matter": "^4.0.3",
     "next": "16.2.2",
     "pdf-parse": "^1.1.1",
