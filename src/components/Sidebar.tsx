@@ -179,6 +179,15 @@ export default function Sidebar({ drafts }: SidebarProps) {
             </svg>
             <span>Roadmap</span>
           </Link>
+          <Link href="/customers" className="sidebar-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="6" cy="5" r="2.5" />
+              <path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5" />
+              <circle cx="12" cy="5.5" r="1.8" />
+              <path d="M12 9c1.7 0 3 1.3 3 3v1" />
+            </svg>
+            <span>Customers</span>
+          </Link>
         </div>
       )}
 
